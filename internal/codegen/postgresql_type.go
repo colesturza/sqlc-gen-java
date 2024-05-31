@@ -1,13 +1,14 @@
-package core
+package codegen
 
 import (
 	"log"
 
+	"github.com/colesturza/sqlc-gen-java/internal/codegen/opts"
 	"github.com/sqlc-dev/plugin-sdk-go/plugin"
 	"github.com/sqlc-dev/plugin-sdk-go/sdk"
 )
 
-func postgresType(req *plugin.GenerateRequest, col *plugin.Column) (string, bool) {
+func postgresType(req *plugin.GenerateRequest, col *plugin.Column, options *opts.Options) (string, bool) {
 	columnType := sdk.DataType(col.Type)
 
 	switch columnType {
@@ -90,9 +91,9 @@ func postgresType(req *plugin.GenerateRequest, col *plugin.Column) (string, bool
 			for _, enum := range schema.Enums {
 				if columnType == enum.Name {
 					if schema.Name == req.Catalog.DefaultSchema {
-						return dataClassName(enum.Name, req.Settings), true
+						return JavaClassName(enum.Name, options), true
 					}
-					return dataClassName(schema.Name+"_"+enum.Name, req.Settings), true
+					return JavaClassName(schema.Name+"_"+enum.Name, options), true
 				}
 			}
 		}

@@ -26,3 +26,5 @@ go.work.sum
 
 # Visual Studio Code
 /.vscode/
+
+/bin/

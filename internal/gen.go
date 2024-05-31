@@ -1,110 +1,54 @@
 package java
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	_ "embed"
 	"encoding/json"
-	"strings"
-	"text/template"
+	"log/slog"
 
-	"github.com/sqlc-dev/plugin-sdk-go/plugin"
-	"github.com/sqlc-dev/plugin-sdk-go/sdk"
+	pb "github.com/sqlc-dev/plugin-sdk-go/plugin"
 
-	"github.com/colesturza/sqlc-gen-java/internal/core"
+	"github.com/colesturza/sqlc-gen-java/internal/codegen"
+	"github.com/colesturza/sqlc-gen-java/internal/codegen/opts"
 )
 
-//go:embed tmpl/javamodels.tmpl
-var javaModelsTmpl string
+func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateResponse, error) {
 
-//go:embed tmpl/javasql.tmpl
-var javaSqlTmpl string
-
-//go:embed tmpl/javaiface.tmpl
-var javaIfaceTmpl string
-
-func Offset(v int) int {
-	return v + 1
-}
-
-func Generate(ctx context.Context, req *plugin.GenerateRequest) (*plugin.GenerateResponse, error) {
-	var conf core.Config
+	var options opts.Options
 	if len(req.PluginOptions) > 0 {
-		if err := json.Unmarshal(req.PluginOptions, &conf); err != nil {
+		if err := json.Unmarshal(req.PluginOptions, &options); err != nil {
 			return nil, err
 		}
 	}
 
-	enums := core.BuildEnums(req)
-	structs := core.BuildDataClasses(conf, req)
-	queries, err := core.BuildQueries(req, structs)
-	if err != nil {
-		return nil, err
+	// configure logging
+	var buf bytes.Buffer
+	logHandlerOptions := slog.HandlerOptions{
+		Level: slog.LevelWarn,
 	}
+	jsonLogHandler := slog.NewJSONHandler(&buf, &logHandlerOptions)
+	slog.SetDefault(slog.New(jsonLogHandler))
 
-	i := &core.Importer{
-		Settings:    req.Settings,
-		Enums:       enums,
-		DataClasses: structs,
-		Queries:     queries,
-	}
+	slog.Error("An error")
+	slog.Warn("A warning")
 
-	funcMap := template.FuncMap{
-		"lowerTitle": sdk.LowerTitle,
-		"comment":    sdk.DoubleSlashComment,
-		"imports":    i.Imports,
-		"offset":     Offset,
-	}
+	enums := codegen.BuildJavaEnums(req, &options)
+	classes := codegen.BuildJavaClasses(req, &options)
 
-	modelsFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaModelsTmpl))
-	sqlFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaSqlTmpl))
-	ifaceFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaIfaceTmpl))
-
-	core.DefaultImporter = i
-
-	tctx := core.JavaTmplCtx{
-		Settings:    req.Settings,
-		Q:           `"""`,
-		Package:     conf.Package,
-		Queries:     queries,
-		Enums:       enums,
-		DataClasses: structs,
-		SqlcVersion: req.SqlcVersion,
-	}
+	enumsJSON, _ := json.MarshalIndent(enums, "", "\t")
+	classesJSON, _ := json.MarshalIndent(classes, "", "\t")
 
 	output := map[string]string{}
 
-	execute := func(name string, t *template.Template) error {
-		var b bytes.Buffer
-		w := bufio.NewWriter(&b)
-		tctx.SourceName = name
-		err := t.Execute(w, tctx)
-		w.Flush()
-		if err != nil {
-			return err
-		}
-		if !strings.HasSuffix(name, ".java") {
-			name += ".java"
-		}
-		output[name] = core.JavaFormat(b.String())
-		return nil
-	}
+	output["log"] = buf.String()
+	output["enums.txt"] = string(enumsJSON)
+	output["classes.txt"] = string(classesJSON)
 
-	if err := execute("Models.java", modelsFile); err != nil {
-		return nil, err
-	}
-	if err := execute("Queries.java", ifaceFile); err != nil {
-		return nil, err
-	}
-	if err := execute("QueriesImpl.java", sqlFile); err != nil {
-		return nil, err
-	}
-
-	resp := plugin.GenerateResponse{}
+	resp := pb.GenerateResponse{}
 
 	for filename, code := range output {
-		resp.Files = append(resp.Files, &plugin.File{
+		resp.Files = append(resp.Files, &pb.File{
 			Name:     filename,
 			Contents: []byte(code),
 		})

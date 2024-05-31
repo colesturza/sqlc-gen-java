@@ -1,4 +1,4 @@
-package core
+package codegen
 
 import (
 	"bytes"
@@ -9,72 +9,29 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
+	"github.com/colesturza/sqlc-gen-java/internal/codegen/opts"
 	"github.com/sqlc-dev/plugin-sdk-go/metadata"
 	"github.com/sqlc-dev/plugin-sdk-go/plugin"
 	"github.com/sqlc-dev/plugin-sdk-go/sdk"
-
-	"github.com/colesturza/sqlc-gen-java/internal/inflection"
 )
 
+type JavaTmplCtx struct {
+	Q           string
+	Package     string
+	Enums       []Enum
+	DataClasses []Struct
+	Queries     []Query
+	SqlcVersion string
+
+	// TODO: Race conditions
+	SourceName string
+
+	EmitJSONTags        bool
+	EmitPreparedQueries bool
+	EmitInterface       bool
+}
+
 var javaIdentPattern = regexp.MustCompile("[^a-zA-Z0-9_]+")
-
-type Constant struct {
-	Name  string
-	Type  string
-	Value string
-}
-
-type Enum struct {
-	Name      string
-	Comment   string
-	Constants []Constant
-}
-
-type Field struct {
-	ID      int
-	Name    string
-	Type    javaType
-	Comment string
-}
-
-type Struct struct {
-	Table   plugin.Identifier
-	Name    string
-	Fields  []Field
-	Comment string
-}
-
-type QueryValue struct {
-	Emit   bool
-	Name   string
-	Struct *Struct
-	Typ    javaType
-}
-
-func (v QueryValue) EmitStruct() bool {
-	return v.Emit
-}
-
-func (v QueryValue) IsStruct() bool {
-	return v.Struct != nil
-}
-
-func (v QueryValue) isEmpty() bool {
-	return v.Typ == (javaType{}) && v.Name == "" && v.Struct == nil
-}
-
-func (v QueryValue) Type() string {
-	if v.Typ != (javaType{}) {
-		return v.Typ.String()
-	}
-	if v.Struct != nil {
-		return v.Struct.Name
-	}
-	panic("no type for QueryValue: " + v.Name)
-}
 
 func jdbcSet(t javaType, idx int, name string) string {
 	if t.IsEnum && t.IsArray {
@@ -214,115 +171,6 @@ func indent(s string, n int, firstIndent int) string {
 	return buf.String()
 }
 
-// A struct used to generate methods and fields on the Queries struct
-type Query struct {
-	ClassName    string
-	Cmd          string
-	Comments     []string
-	MethodName   string
-	FieldName    string
-	ConstantName string
-	SQL          string
-	SourceName   string
-	Ret          QueryValue
-	Arg          Params
-}
-
-func javaEnumValueName(value string) string {
-	id := strings.Replace(value, "-", "_", -1)
-	id = strings.Replace(id, ":", "_", -1)
-	id = strings.Replace(id, "/", "_", -1)
-	id = javaIdentPattern.ReplaceAllString(id, "")
-	return strings.ToUpper(id)
-}
-
-func BuildEnums(req *plugin.GenerateRequest) []Enum {
-	var enums []Enum
-	for _, schema := range req.Catalog.Schemas {
-		if schema.Name == "pg_catalog" || schema.Name == "information_schema" {
-			continue
-		}
-		for _, enum := range schema.Enums {
-			var enumName string
-			if schema.Name == req.Catalog.DefaultSchema {
-				enumName = enum.Name
-			} else {
-				enumName = schema.Name + "_" + enum.Name
-			}
-			e := Enum{
-				Name:    dataClassName(enumName, req.Settings),
-				Comment: enum.Comment,
-			}
-			for _, v := range enum.Vals {
-				e.Constants = append(e.Constants, Constant{
-					Name:  javaEnumValueName(v),
-					Value: v,
-					Type:  e.Name,
-				})
-			}
-			enums = append(enums, e)
-		}
-	}
-	if len(enums) > 0 {
-		sort.Slice(enums, func(i, j int) bool { return enums[i].Name < enums[j].Name })
-	}
-	return enums
-}
-
-func dataClassName(name string, settings *plugin.Settings) string {
-	out := ""
-	caser := cases.Title(language.Und, cases.NoLower)
-	for _, p := range strings.Split(name, "_") {
-		out += caser.String(p)
-	}
-	return out
-}
-
-func memberName(name string, settings *plugin.Settings) string {
-	return sdk.LowerTitle(dataClassName(name, settings))
-}
-
-func BuildDataClasses(conf Config, req *plugin.GenerateRequest) []Struct {
-	var structs []Struct
-	for _, schema := range req.Catalog.Schemas {
-		if schema.Name == "pg_catalog" || schema.Name == "information_schema" {
-			continue
-		}
-		for _, table := range schema.Tables {
-			var tableName string
-			if schema.Name == req.Catalog.DefaultSchema {
-				tableName = table.Rel.Name
-			} else {
-				tableName = schema.Name + "_" + table.Rel.Name
-			}
-			structName := dataClassName(tableName, req.Settings)
-			if !conf.EmitExactTableNames {
-				structName = inflection.Singular(inflection.SingularParams{
-					Name:       structName,
-					Exclusions: conf.InflectionExcludeTableNames,
-				})
-			}
-			s := Struct{
-				Table:   plugin.Identifier{Schema: schema.Name, Name: table.Rel.Name},
-				Name:    structName,
-				Comment: table.Comment,
-			}
-			for _, column := range table.Columns {
-				s.Fields = append(s.Fields, Field{
-					Name:    memberName(column.Name, req.Settings),
-					Type:    makeType(req, column),
-					Comment: column.Comment,
-				})
-			}
-			structs = append(structs, s)
-		}
-	}
-	if len(structs) > 0 {
-		sort.Slice(structs, func(i, j int) bool { return structs[i].Name < structs[j].Name })
-	}
-	return structs
-}
-
 type javaType struct {
 	Name     string
 	IsEnum   bool
@@ -375,8 +223,8 @@ func (t javaType) IsBigDecimal() bool {
 	return t.Name == "java.math.BigDecimal"
 }
 
-func makeType(req *plugin.GenerateRequest, col *plugin.Column) javaType {
-	typ, isEnum := javaInnerType(req, col)
+func makeType(req *plugin.GenerateRequest, col *plugin.Column, options *opts.Options) javaType {
+	typ, isEnum := javaInnerType(req, col, options)
 	return javaType{
 		Name:     typ,
 		IsEnum:   isEnum,
@@ -387,13 +235,13 @@ func makeType(req *plugin.GenerateRequest, col *plugin.Column) javaType {
 	}
 }
 
-func javaInnerType(req *plugin.GenerateRequest, col *plugin.Column) (string, bool) {
+func javaInnerType(req *plugin.GenerateRequest, col *plugin.Column, options *opts.Options) (string, bool) {
 	// TODO: Extend the engine interface to handle types
 	switch req.Settings.Engine {
 	case "mysql":
-		return mysqlType(req, col)
+		return mysqlType(req, col, options)
 	case "postgresql":
-		return postgresType(req, col)
+		return postgresType(req, col, options)
 	default:
 		return "Any", false
 	}
@@ -404,7 +252,7 @@ type goColumn struct {
 	*plugin.Column
 }
 
-func javaColumnsToStruct(req *plugin.GenerateRequest, name string, columns []goColumn, namer func(*plugin.Column, int) string) *Struct {
+func javaColumnsToStruct(req *plugin.GenerateRequest, options *opts.Options, name string, columns []goColumn, namer func(*plugin.Column, int) string) *Struct {
 	gs := Struct{
 		Name: name,
 	}
@@ -414,14 +262,14 @@ func javaColumnsToStruct(req *plugin.GenerateRequest, name string, columns []goC
 		if _, ok := idSeen[c.id]; ok {
 			continue
 		}
-		fieldName := memberName(namer(c.Column, c.id), req.Settings)
+		fieldName := JavaClassMemberName(namer(c.Column, c.id), options)
 		if v := nameSeen[c.Name]; v > 0 {
 			fieldName = fmt.Sprintf("%s_%d", fieldName, v+1)
 		}
 		field := Field{
 			ID:   c.id,
 			Name: fieldName,
-			Type: makeType(req, c.Column),
+			Type: makeType(req, c.Column, options),
 		}
 		gs.Fields = append(gs.Fields, field)
 		nameSeen[c.Name]++
@@ -488,7 +336,7 @@ func parseInts(s []string) ([]int, error) {
 	return refs, nil
 }
 
-func BuildQueries(req *plugin.GenerateRequest, structs []Struct) ([]Query, error) {
+func BuildQueries(req *plugin.GenerateRequest, options *opts.Options, structs []Struct) ([]Query, error) {
 	qs := make([]Query, 0, len(req.Queries))
 	for _, query := range req.Queries {
 		if query.Name == "" {
@@ -524,7 +372,7 @@ func BuildQueries(req *plugin.GenerateRequest, structs []Struct) ([]Query, error
 				Column: p.Column,
 			})
 		}
-		params := javaColumnsToStruct(req, gq.ClassName+"Bindings", cols, javaParamName)
+		params := javaColumnsToStruct(req, options, gq.ClassName+"Bindings", cols, javaParamName)
 		gq.Arg = Params{
 			Struct:  params,
 			binding: refs,
@@ -534,7 +382,7 @@ func BuildQueries(req *plugin.GenerateRequest, structs []Struct) ([]Query, error
 			c := query.Columns[0]
 			gq.Ret = QueryValue{
 				Name: "results",
-				Typ:  makeType(req, c),
+				Typ:  makeType(req, c, options),
 			}
 		} else if len(query.Columns) > 1 {
 			var gs *Struct
@@ -547,9 +395,9 @@ func BuildQueries(req *plugin.GenerateRequest, structs []Struct) ([]Query, error
 				same := true
 				for i, f := range s.Fields {
 					c := query.Columns[i]
-					sameName := f.Name == memberName(javaColumnName(c, i), req.Settings)
-					sameType := f.Type == makeType(req, c)
-					sameTable := sdk.SameTableName(c.Table, &s.Table, req.Catalog.DefaultSchema)
+					sameName := f.Name == JavaClassMemberName(javaColumnName(c, i), options)
+					sameType := f.Type == makeType(req, c, options)
+					sameTable := sdk.SameTableName(c.Table, s.Table, req.Catalog.DefaultSchema)
 
 					if !sameName || !sameType || !sameTable {
 						same = false
@@ -569,7 +417,7 @@ func BuildQueries(req *plugin.GenerateRequest, structs []Struct) ([]Query, error
 						Column: c,
 					})
 				}
-				gs = javaColumnsToStruct(req, gq.ClassName+"Row", columns, javaColumnName)
+				gs = javaColumnsToStruct(req, options, gq.ClassName+"Row", columns, javaColumnName)
 				emit = true
 			}
 			gq.Ret = QueryValue{
@@ -583,23 +431,6 @@ func BuildQueries(req *plugin.GenerateRequest, structs []Struct) ([]Query, error
 	}
 	sort.Slice(qs, func(i, j int) bool { return qs[i].MethodName < qs[j].MethodName })
 	return qs, nil
-}
-
-type JavaTmplCtx struct {
-	Q           string
-	Package     string
-	Enums       []Enum
-	DataClasses []Struct
-	Queries     []Query
-	Settings    *plugin.Settings
-	SqlcVersion string
-
-	// TODO: Race conditions
-	SourceName string
-
-	EmitJSONTags        bool
-	EmitPreparedQueries bool
-	EmitInterface       bool
 }
 
 func Offset(v int) int {

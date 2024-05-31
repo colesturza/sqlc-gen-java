@@ -1,4 +1,4 @@
-package core
+package codegen
 
 import (
 	"github.com/sqlc-dev/plugin-sdk-go/sdk"
