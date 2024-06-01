@@ -2,7 +2,6 @@ package codegen
 
 import (
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -43,28 +42,41 @@ func (v QueryValue) Type() string {
 	panic("no type for QueryValue: " + v.Name)
 }
 
-func (v QueryValue) Args() string {
-	if v.isEmpty() {
-		return ""
-	}
+func (v QueryValue) Pair() string {
 	var out []string
-	fields := v.Struct.Fields
-	for _, f := range fields {
-		out = append(out, f.Name+": "+f.Type.String())
+	for _, arg := range v.Pairs() {
+		out = append(out, "final "+arg.Type+" "+arg.Name)
 	}
-	if len(v.binding) > 0 {
-		lookup := map[int]int{}
-		for i, v := range v.binding {
-			lookup[v] = i
+	return strings.Join(out, ",")
+}
+
+type Argument struct {
+	Name string
+	Type string
+}
+
+// Return the argument name and type for query methods. Should only be used in
+// the context of method arguments.
+func (v QueryValue) Pairs() []Argument {
+	if v.isEmpty() {
+		return nil
+	}
+	if !v.EmitStruct() && v.IsStruct() {
+		var out []Argument
+		for _, f := range v.Struct.Fields {
+			out = append(out, Argument{
+				Name: EscapeJavaReservedWord(toLowerCase(f.Name)),
+				Type: f.Type.Name,
+			})
 		}
-		sort.Slice(out, func(i, j int) bool {
-			return lookup[fields[i].ID] < lookup[fields[j].ID]
-		})
+		return out
 	}
-	if len(out) < 3 {
-		return strings.Join(out, ", ")
+	return []Argument{
+		{
+			Name: EscapeJavaReservedWord(v.Name),
+			Type: v.Type(),
+		},
 	}
-	return "\n" + indent(strings.Join(out, ",\n"), 6, -1)
 }
 
 func (v QueryValue) Bindings() string {

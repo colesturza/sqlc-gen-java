@@ -6,21 +6,42 @@
 package {{.Package}};
 
 public interface Queries {
-    {{- range .Queries}}
-    {{- if eq .Cmd ":one"}}
-    {{.Ret.Type}} {{.MethodName}}({{.Arg.Args}}) throws SQLException;
-    {{- end}}
-    {{- if eq .Cmd ":many"}}
-    List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Args}}) throws SQLException;
-    {{- end}}
-    {{- if eq .Cmd ":exec"}}
-    void {{.MethodName}}({{.Arg.Args}}) throws SQLException;
-    {{- end}}
-    {{- if eq .Cmd ":execrows"}}
-    int {{.MethodName}}({{.Arg.Args}}) throws SQLException;
-    {{- end}}
-    {{- if eq .Cmd ":execresult"}}
-    long {{.MethodName}}({{.Arg.Args}}) throws SQLException;
-    {{- end}}
-    {{end}}
+{{- range .Queries}}
+{{- if eq .Cmd ":one"}}
+
+    {{range .Comments}}{{comment .}}
+    {{end -}}
+    java.util.Optional<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+{{- end}}
+{{- if eq .Cmd ":many"}}
+
+    {{range .Comments}}{{comment .}}
+    {{end -}}
+    java.util.List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+{{- end}}
+{{- if eq .Cmd ":exec"}}
+
+    {{range .Comments}}{{comment .}}
+    {{end -}}
+    void {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+{{- end}}
+{{- if eq .Cmd ":execrows"}}
+
+    {{range .Comments}}{{comment .}}
+    {{end -}}
+    long {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+{{- end}}
+{{- if eq .Cmd ":execlastid"}}
+
+    {{range .Comments}}{{comment .}}
+    {{end -}}
+    long {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+{{- end}}
+{{- if eq .Cmd ":execresult"}}
+
+    {{range .Comments}}{{comment .}}
+    {{end -}}
+    long {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+{{- end}}
+{{- end}}
 }

@@ -50,3 +50,11 @@ func ConvertCamelToConstant(input string) string {
 
 	return strings.Join(words, "_")
 }
+
+func toLowerCase(str string) string {
+	if str == "" {
+		return ""
+	}
+
+	return strings.ToLower(str[:1]) + str[1:]
+}

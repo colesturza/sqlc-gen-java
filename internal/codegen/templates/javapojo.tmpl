@@ -12,7 +12,7 @@ public class {{.Name}} {
     {{- if .Comment}}
     {{comment .Comment}}
     {{- end}}
-    private{{if $.EmitBuilder}} final{{end}} {{.Type}} {{.Name}};
+    private{{if $.EmitBuilder}} final{{end}} {{if .Type.IsNull}}{{.Type.Name}}{{else}}{{.Type}}{{end}} {{.Name}};
     {{- end}}
 
     {{if .EmitBuilder}}
@@ -31,15 +31,15 @@ public class {{.Name}} {
 
     {{range .Struct.Fields}}
 
-    public {{.Type}} get{{title .Name}}() {
-        return this.{{.Name}};
+    public {{if .Type.IsNull}}{{.Type.Name}}{{else}}{{.Type}}{{end}} get{{title .Name}}() {
+        return {{if .Type.IsNull}}java.util.Optional.ofNullable(this.{{.Name}}){{else}}this.{{.Name}}{{end}};
     }
     {{- end}}
 
     {{ if not .EmitBuilder}}
     {{range .Struct.Fields}}
 
-    public void set{{title .Name}}(final {{.Type}} {{.Name}}) {
+    public void set{{title .Name}}(final {{if .Type.IsNull}}{{.Type.Name}}{{else}}{{.Type}}{{end}} {{.Name}}) {
         this.{{.Name}} = {{.Name}};
     }
     {{- end}}
@@ -102,5 +102,5 @@ public class {{.Name}} {
             {{- end}});
         }
     }
-    {{end}}
+    {{- end}}
 }

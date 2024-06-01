@@ -20,9 +20,9 @@ type javaType struct {
 func (t javaType) String() string {
 	v := t.Name
 	if t.IsArray {
-		v = fmt.Sprintf("List<%s>", v)
+		v = fmt.Sprintf("java.util.List<%s>", v)
 	} else if t.IsNull {
-		v = fmt.Sprintf("Optional<%s>", v)
+		v = fmt.Sprintf("java.util.Optional<%s>", v)
 	}
 	return v
 }

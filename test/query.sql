@@ -23,7 +23,7 @@ SELECT
   tags
 FROM books
 LEFT JOIN authors ON books.author_id = authors.author_id
-WHERE tags && $1::varchar[];
+WHERE tags && sqlc.arg(tags)::varchar[];
 
 -- name: CreateAuthor :one
 INSERT INTO authors (name) VALUES ($1)

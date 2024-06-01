@@ -74,6 +74,7 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 
 	enumFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaEnumTmpl))
 	classFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaPOJOTmpl))
+	ifaceFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaIfaceTmpl))
 
 	execute := func(name string, t *template.Template, data any) error {
 		var b bytes.Buffer
@@ -142,6 +143,23 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 			if err := execute(query.Ret.Struct.Name, classFile, data); err != nil {
 				return nil, err
 			}
+		}
+	}
+
+	{
+		data := struct {
+			Package            string
+			SqlcVersion        string
+			SqlcGenJavaVersion string
+			Queries            []codegen.Query
+		}{
+			Package:            options.Package,
+			SqlcVersion:        req.SqlcVersion,
+			SqlcGenJavaVersion: version,
+			Queries:            queries,
+		}
+		if err := execute("Queries.java", ifaceFile, data); err != nil {
+			return nil, err
 		}
 	}
 
