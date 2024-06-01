@@ -171,82 +171,6 @@ func indent(s string, n int, firstIndent int) string {
 	return buf.String()
 }
 
-type javaType struct {
-	Name     string
-	IsEnum   bool
-	IsArray  bool
-	IsNull   bool
-	DataType string
-	Engine   string
-}
-
-func (t javaType) String() string {
-	v := t.Name
-	if t.IsArray {
-		v = fmt.Sprintf("List<%s>", v)
-	} else if t.IsNull {
-		v += "?"
-	}
-	return v
-}
-
-func (t javaType) jdbcSetter() string {
-	return "set" + t.jdbcType()
-}
-
-func (t javaType) jdbcType() string {
-	if t.IsArray {
-		return "Array"
-	}
-	if t.IsEnum || t.IsTime() {
-		return "Object"
-	}
-	if t.IsInstant() {
-		return "Timestamp"
-	}
-	return t.Name
-}
-
-func (t javaType) IsTime() bool {
-	return t.Name == "LocalDate" || t.Name == "LocalDateTime" || t.Name == "LocalTime" || t.Name == "OffsetDateTime"
-}
-
-func (t javaType) IsInstant() bool {
-	return t.Name == "Instant"
-}
-
-func (t javaType) IsUUID() bool {
-	return t.Name == "UUID"
-}
-
-func (t javaType) IsBigDecimal() bool {
-	return t.Name == "java.math.BigDecimal"
-}
-
-func makeType(req *plugin.GenerateRequest, col *plugin.Column, options *opts.Options) javaType {
-	typ, isEnum := javaInnerType(req, col, options)
-	return javaType{
-		Name:     typ,
-		IsEnum:   isEnum,
-		IsArray:  col.IsArray,
-		IsNull:   !col.NotNull,
-		DataType: sdk.DataType(col.Type),
-		Engine:   req.Settings.Engine,
-	}
-}
-
-func javaInnerType(req *plugin.GenerateRequest, col *plugin.Column, options *opts.Options) (string, bool) {
-	// TODO: Extend the engine interface to handle types
-	switch req.Settings.Engine {
-	case "mysql":
-		return mysqlType(req, col, options)
-	case "postgresql":
-		return postgresType(req, col, options)
-	default:
-		return "Any", false
-	}
-}
-
 type goColumn struct {
 	id int
 	*plugin.Column
@@ -269,7 +193,7 @@ func javaColumnsToStruct(req *plugin.GenerateRequest, options *opts.Options, nam
 		field := Field{
 			ID:   c.id,
 			Name: fieldName,
-			Type: makeType(req, c.Column, options),
+			Type: makeType(req, options, c.Column),
 		}
 		gs.Fields = append(gs.Fields, field)
 		nameSeen[c.Name]++
@@ -382,7 +306,7 @@ func BuildQueries(req *plugin.GenerateRequest, options *opts.Options, structs []
 			c := query.Columns[0]
 			gq.Ret = QueryValue{
 				Name: "results",
-				Typ:  makeType(req, c, options),
+				Typ:  makeType(req, options, c),
 			}
 		} else if len(query.Columns) > 1 {
 			var gs *Struct
@@ -396,7 +320,7 @@ func BuildQueries(req *plugin.GenerateRequest, options *opts.Options, structs []
 				for i, f := range s.Fields {
 					c := query.Columns[i]
 					sameName := f.Name == JavaClassMemberName(javaColumnName(c, i), options)
-					sameType := f.Type == makeType(req, c, options)
+					sameType := f.Type == makeType(req, options, c)
 					sameTable := sdk.SameTableName(c.Table, s.Table, req.Catalog.DefaultSchema)
 
 					if !sameName || !sameType || !sameTable {

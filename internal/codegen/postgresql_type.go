@@ -13,7 +13,7 @@ func postgresType(req *plugin.GenerateRequest, col *plugin.Column, options *opts
 
 	switch columnType {
 	case "serial", "pg_catalog.serial4":
-		return "Int", false
+		return "Integer", false
 
 	case "bigserial", "pg_catalog.serial8":
 		return "Long", false
@@ -22,7 +22,7 @@ func postgresType(req *plugin.GenerateRequest, col *plugin.Column, options *opts
 		return "Short", false
 
 	case "integer", "int", "int4", "pg_catalog.int4":
-		return "Int", false
+		return "Integer", false
 
 	case "bigint", "pg_catalog.int8":
 		return "Long", false

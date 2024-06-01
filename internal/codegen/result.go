@@ -69,7 +69,7 @@ func BuildJavaClasses(req *plugin.GenerateRequest, options *opts.Options) []Stru
 			for _, column := range table.Columns {
 				s.Fields = append(s.Fields, Field{
 					Name:    JavaClassMemberName(column.Name, options),
-					Type:    makeType(req, column, options),
+					Type:    makeType(req, options, column),
 					Comment: column.Comment,
 				})
 			}

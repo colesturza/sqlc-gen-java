@@ -15,7 +15,7 @@ func mysqlType(req *plugin.GenerateRequest, col *plugin.Column, options *opts.Op
 		return "String", false
 
 	case "int", "integer", "smallint", "mediumint", "year":
-		return "Int", false
+		return "Integer", false
 
 	case "bigint":
 		return "Long", false
