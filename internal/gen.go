@@ -15,7 +15,10 @@ import (
 
 	"github.com/colesturza/sqlc-gen-java/internal/codegen"
 	"github.com/colesturza/sqlc-gen-java/internal/codegen/opts"
+	"github.com/colesturza/sqlc-gen-java/internal/inflection"
 )
+
+var version = "dev"
 
 //go:embed codegen/templates/javaenum.tmpl
 var javaEnumTmpl string
@@ -23,42 +26,50 @@ var javaEnumTmpl string
 //go:embed codegen/templates/javapojo.tmpl
 var javaPOJOTmpl string
 
-func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateResponse, error) {
+//go:embed codegen/templates/javaiface.tmpl
+var javaIfaceTmpl string
 
-	var options opts.Options
-	if len(req.PluginOptions) > 0 {
-		if err := json.Unmarshal(req.PluginOptions, &options); err != nil {
-			return nil, err
-		}
+func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateResponse, error) {
+	options, err := opts.Parse(req)
+	if err != nil {
+		return nil, err
 	}
 
-	// configure logging
 	var buf bytes.Buffer
 	logHandlerOptions := slog.HandlerOptions{
-		Level: slog.LevelWarn,
+		Level: slog.LevelInfo,
 	}
 	jsonLogHandler := slog.NewJSONHandler(&buf, &logHandlerOptions)
 	slog.SetDefault(slog.New(jsonLogHandler))
 
-	slog.Error("An error")
-	slog.Warn("A warning")
-
-	enums := codegen.BuildJavaEnums(req, &options)
-	classes := codegen.BuildJavaClasses(req, &options)
+	enums := codegen.BuildJavaEnums(req, options)
+	classes := codegen.BuildJavaClasses(req, options)
+	queries, err := codegen.BuildQueries(req, options, classes)
+	if err != nil {
+		return nil, err
+	}
 
 	enumsJSON, _ := json.MarshalIndent(enums, "", "\t")
 	classesJSON, _ := json.MarshalIndent(classes, "", "\t")
+	queriesJSON, _ := json.MarshalIndent(queries, "", "\t")
 
 	output := map[string]string{}
-
-	output["log"] = buf.String()
 	output["enums.txt"] = string(enumsJSON)
 	output["classes.txt"] = string(classesJSON)
+	output["queries.txt"] = string(queriesJSON)
+
+	singular := func(s string) string {
+		return inflection.Singular(inflection.SingularParams{
+			Name:       s,
+			Exclusions: options.InflectionExcludeTableNames,
+		})
+	}
 
 	funcMap := template.FuncMap{
 		"title":      sdk.Title,
 		"lowerTitle": sdk.LowerTitle,
 		"comment":    sdk.DoubleSlashComment,
+		"singular":   singular,
 	}
 
 	enumFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaEnumTmpl))
@@ -75,39 +86,66 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 		if !strings.HasSuffix(name, ".java") {
 			name += ".java"
 		}
-		output[name] = b.String()
+		output[name] = codegen.JavaFormat(b.String())
 		return nil
 	}
 
 	for _, enum := range enums {
 		data := struct {
-			Package     string
-			SqlcVersion string
+			Package            string
+			SqlcVersion        string
+			SqlcGenJavaVersion string
 			codegen.Enum
 		}{
-			Package:     options.Package,
-			SqlcVersion: req.SqlcVersion,
-			Enum:        enum,
+			Package:            options.Package,
+			SqlcVersion:        req.SqlcVersion,
+			SqlcGenJavaVersion: version,
+			Enum:               enum,
 		}
 		if err := execute(enum.Name, enumFile, data); err != nil {
 			return nil, err
 		}
 	}
 
-	for _, class := range classes {
-		data := struct {
-			Package     string
-			SqlcVersion string
+	createStructTmplData := func(s codegen.Struct, emitBuilder bool) any {
+		return struct {
+			Package            string
+			SqlcVersion        string
+			SqlcGenJavaVersion string
+			EmitBuilder        bool
 			codegen.Struct
 		}{
-			Package:     options.Package,
-			SqlcVersion: req.SqlcVersion,
-			Struct:      class,
+			Package:            options.Package,
+			SqlcVersion:        req.SqlcVersion,
+			SqlcGenJavaVersion: version,
+			EmitBuilder:        emitBuilder,
+			Struct:             s,
 		}
+	}
+
+	for _, class := range classes {
+		data := createStructTmplData(class, false)
 		if err := execute(class.Name, classFile, data); err != nil {
 			return nil, err
 		}
 	}
+
+	for _, query := range queries {
+		if query.Arg.IsStruct() && query.Arg.EmitStruct() {
+			data := createStructTmplData(*query.Arg.Struct, true)
+			if err := execute(query.Arg.Struct.Name, classFile, data); err != nil {
+				return nil, err
+			}
+		}
+		if query.Ret.IsStruct() && query.Ret.EmitStruct() {
+			data := createStructTmplData(*query.Ret.Struct, false)
+			if err := execute(query.Ret.Struct.Name, classFile, data); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	output["log"] = buf.String()
 
 	resp := pb.GenerateResponse{}
 
