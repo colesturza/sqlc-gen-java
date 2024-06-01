@@ -11,37 +11,37 @@ public interface Queries {
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    java.util.Optional<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+    java.util.Optional<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- if eq .Cmd ":many"}}
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    java.util.List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+    java.util.List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- if eq .Cmd ":exec"}}
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    void {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+    void {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- if eq .Cmd ":execrows"}}
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    long {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+    long {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- if eq .Cmd ":execlastid"}}
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    long {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+    long {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- if eq .Cmd ":execresult"}}
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    long {{.MethodName}}({{.Arg.Pair}}) throws java.sql.SQLException;
+    long {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- end}}
 }
