@@ -27,6 +27,16 @@ public class {{.Name}} {
     }
     {{else}}
     public {{.Struct.Name}}() {}
+
+    public {{.Struct.Name}}(
+    {{- range $i, $e := .Struct.Fields}}
+    {{- if $i }}, {{end -}}
+    final {{.Type}} {{.Name}}
+    {{- end}}) {
+        {{- range .Struct.Fields}}
+        this.{{.Name}} = {{.Name}};
+        {{- end}}
+    }
     {{end}}
 
     {{range .Struct.Fields}}

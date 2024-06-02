@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	pb "github.com/sqlc-dev/plugin-sdk-go/plugin"
 	"github.com/sqlc-dev/plugin-sdk-go/sdk"
 
@@ -28,6 +29,9 @@ var javaPOJOTmpl string
 
 //go:embed codegen/templates/javaiface.tmpl
 var javaIfaceTmpl string
+
+//go:embed codegen/templates/javasql.tmpl
+var javaSQLTmpl string
 
 func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateResponse, error) {
 	options, err := opts.Parse(req)
@@ -65,16 +69,22 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 		})
 	}
 
-	funcMap := template.FuncMap{
+	customFuncMap := template.FuncMap{
 		"title":      sdk.Title,
 		"lowerTitle": sdk.LowerTitle,
 		"comment":    sdk.DoubleSlashComment,
 		"singular":   singular,
 	}
 
+	funcMap := sprig.FuncMap()
+	for k, v := range customFuncMap {
+		funcMap[k] = v
+	}
+
 	enumFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaEnumTmpl))
 	classFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaPOJOTmpl))
 	ifaceFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaIfaceTmpl))
+	sqlFile := template.Must(template.New("table").Funcs(funcMap).Parse(javaSQLTmpl))
 
 	execute := func(name string, t *template.Template, data any) error {
 		var b bytes.Buffer
@@ -159,6 +169,24 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 			Queries:            queries,
 		}
 		if err := execute("Queries.java", ifaceFile, data); err != nil {
+			return nil, err
+		}
+	}
+
+	{
+		data := struct {
+			Package            string
+			SqlcVersion        string
+			SqlcGenJavaVersion string
+			RowMappers         map[string]*codegen.Struct
+			Queries            []codegen.Query
+		}{
+			Package:            options.Package,
+			SqlcVersion:        req.SqlcVersion,
+			SqlcGenJavaVersion: version,
+			Queries:            queries,
+		}
+		if err := execute("QueriesImpl.java", sqlFile, data); err != nil {
 			return nil, err
 		}
 	}

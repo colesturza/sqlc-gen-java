@@ -49,12 +49,13 @@ INSERT INTO books (
 )
 RETURNING *;
 
--- name: UpdateBook :exec
+-- name: UpdateBook :one
 UPDATE books
 SET title = $1, tags = $2
-WHERE book_id = $3;
+WHERE book_id = $3
+RETURNING *;
 
--- name: UpdateBookISBN :exec
+-- name: UpdateBookISBN :execrows
 UPDATE books
 SET title = $1, tags = $2, isbn = $4
 WHERE book_id = $3;

@@ -1,11 +1,13 @@
 package codegen
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/sqlc-dev/plugin-sdk-go/plugin"
+	"github.com/sqlc-dev/plugin-sdk-go/sdk"
 )
 
 type QueryValue struct {
@@ -79,22 +81,96 @@ func (v QueryValue) Pairs() []Argument {
 	}
 }
 
+func jdbcSet(t javaType, idx int, name string) string {
+	if t.IsEnum && t.IsArray {
+		return fmt.Sprintf(`ps.setArray(%d, conn.createArrayOf("%s", %s.toArray(new %s[0])));`, idx, t.DataType, name, t.Name)
+	}
+	if t.IsEnum {
+		if t.Engine == "postgresql" {
+			return fmt.Sprintf("ps.setObject(%d, %s, %s);", idx, name, "java.sql.Types.OTHER")
+		} else {
+			return fmt.Sprintf("ps.setString(%d, %s);", idx, name)
+		}
+	}
+	if t.IsArray {
+		return fmt.Sprintf(`ps.setArray(%d, conn.createArrayOf("%s", %s.toArray(new %s[0])));`, idx, t.DataType, name, t.Name)
+	}
+	if t.IsTime() {
+		return fmt.Sprintf("ps.setObject(%d, %s);", idx, name)
+	}
+	if t.IsInstant() {
+		return fmt.Sprintf("ps.setTimestamp(%d, Timestamp.from(%s));", idx, name)
+	}
+	if t.IsUUID() {
+		return fmt.Sprintf("ps.setObject(%d, %s);", idx, name)
+	}
+	if t.Name == "Integer" {
+		return fmt.Sprintf("ps.setInt(%d, %s);", idx, name)
+	}
+	return fmt.Sprintf("ps.set%s(%d, %s);", t.Name, idx, name)
+}
+
 func (v QueryValue) Bindings() string {
 	if v.isEmpty() {
 		return ""
 	}
 	var out []string
-	if len(v.binding) > 0 {
-		for i, idx := range v.binding {
-			f := v.Struct.Fields[idx-1]
-			out = append(out, jdbcSet(f.Type, i+1, f.Name))
-		}
+	if !v.IsStruct() {
+		out = append(out, jdbcSet(v.Typ, 1, v.Name))
 	} else {
-		for i, f := range v.Struct.Fields {
-			out = append(out, jdbcSet(f.Type, i+1, f.Name))
+		if len(v.binding) > 0 {
+			for i, idx := range v.binding {
+				f := v.Struct.Fields[idx-1]
+				out = append(out, jdbcSet(f.Type, i+1, v.Name+".get"+sdk.Title(f.Name)+"()"))
+			}
+		} else {
+			for i, f := range v.Struct.Fields {
+				out = append(out, jdbcSet(f.Type, i+1, v.Name+".get"+sdk.Title(f.Name)+"()"))
+			}
 		}
 	}
-	return indent(strings.Join(out, "\n"), 10, 0)
+	return strings.Join(out, "\n")
+}
+
+func jdbcGet(t javaType, idx int) string {
+	if t.IsEnum && t.IsArray {
+		return fmt.Sprintf(`java.util.Arrays.stream((String[]) rs.getArray(%d).getArray()).map(label -> %s.valueOfLabel(label)).collect(java.util.stream.Collectors.toList())`, idx, t.Name)
+	}
+	if t.IsEnum {
+		return fmt.Sprintf("%s.valueOfLabel(rs.getString(%d))", t.Name, idx)
+	}
+	if t.IsArray {
+		return fmt.Sprintf(`java.util.Arrays.stream((%s[]) rs.getArray(%d).getArray()).collect(java.util.stream.Collectors.toList())`, t.Name, idx)
+	}
+	if t.IsTime() {
+		return fmt.Sprintf(`rs.getObject(%d, %s.class)`, idx, t.Name)
+	}
+	if t.IsInstant() {
+		return fmt.Sprintf(`rs.getTimestamp(%d).toInstant()`, idx)
+	}
+	if t.IsUUID() {
+		return fmt.Sprintf(`rs.getObject(%d, java.util.UUID.class)`, idx)
+	}
+	if t.IsBigDecimal() {
+		return fmt.Sprintf(`rs.getBigDecimal(%d)`, idx)
+	}
+	if t.Name == "Integer" {
+		return fmt.Sprintf("rs.getInt(%d)", idx)
+	}
+	return fmt.Sprintf(`rs.get%s(%d)`, t.Name, idx)
+}
+
+func (v QueryValue) ResultSet() string {
+	var out []string
+	if v.Struct == nil {
+		return jdbcGet(v.Typ, 1)
+	}
+	for i, f := range v.Struct.Fields {
+		out = append(out, jdbcGet(f.Type, i+1))
+	}
+	ret := indent(strings.Join(out, ",\n"), 4, -1)
+	ret = indent("new "+v.Struct.Name+"(\n"+ret+")", 24, 0)
+	return ret
 }
 
 // A struct used to generate methods and fields on the Queries struct
