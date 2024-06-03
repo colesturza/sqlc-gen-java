@@ -1,0 +1,178 @@
+[
+	{
+		"Table": {
+			"schema": "public",
+			"name": "city"
+		},
+		"Name": "City",
+		"Fields": [
+			{
+				"ID": 0,
+				"Name": "slug",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "text",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "name",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "text",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			}
+		],
+		"Comment": ""
+	},
+	{
+		"Table": {
+			"schema": "public",
+			"name": "venue"
+		},
+		"Name": "Venue",
+		"Fields": [
+			{
+				"ID": 0,
+				"Name": "id",
+				"Type": {
+					"Name": "Integer",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "serial",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "status",
+				"Type": {
+					"Name": "Status",
+					"IsEnum": true,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "status",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "statuses",
+				"Type": {
+					"Name": "Status",
+					"IsEnum": true,
+					"IsArray": true,
+					"IsNull": true,
+					"DataType": "status",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "slug",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "text",
+					"Engine": "postgresql"
+				},
+				"Comment": "This value appears in public URLs"
+			},
+			{
+				"ID": 0,
+				"Name": "name",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "pg_catalog.varchar",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "city",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "text",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "spotifyPlaylist",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "pg_catalog.varchar",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "songkickId",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": true,
+					"DataType": "text",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "tags",
+				"Type": {
+					"Name": "String",
+					"IsEnum": false,
+					"IsArray": true,
+					"IsNull": true,
+					"DataType": "text",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			},
+			{
+				"ID": 0,
+				"Name": "createdAt",
+				"Type": {
+					"Name": "LocalDateTime",
+					"IsEnum": false,
+					"IsArray": false,
+					"IsNull": false,
+					"DataType": "pg_catalog.timestamp",
+					"Engine": "postgresql"
+				},
+				"Comment": ""
+			}
+		],
+		"Comment": "Venues are places where muisc happens"
+	}
+]

@@ -1,0 +1,1059 @@
+[
+	{
+		"ClassName": "CreateCity",
+		"Cmd": ":one",
+		"Comments": [
+			" Create a new city. The slug must be unique.",
+			" This is the second line of the comment",
+			" This is the third line"
+		],
+		"MethodName": "createCity",
+		"FieldName": "createCityStmt",
+		"ConstantName": "CREATE_CITY",
+		"SQL": "INSERT INTO city (\n    name,\n    slug\n) VALUES (\n    ?,\n    ?\n) RETURNING slug, name",
+		"SourceName": "cities.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "result",
+			"Struct": {
+				"Table": {
+					"schema": "public",
+					"name": "city"
+				},
+				"Name": "City",
+				"Fields": [
+					{
+						"ID": 0,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": true,
+			"Name": "params",
+			"Struct": {
+				"Table": null,
+				"Name": "CreateCityParams",
+				"Fields": [
+					{
+						"ID": 1,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 2,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		}
+	},
+	{
+		"ClassName": "CreateVenue",
+		"Cmd": ":one",
+		"Comments": null,
+		"MethodName": "createVenue",
+		"FieldName": "createVenueStmt",
+		"ConstantName": "CREATE_VENUE",
+		"SQL": "INSERT INTO venue (\n    slug,\n    name,\n    city,\n    created_at,\n    spotify_playlist,\n    status,\n    statuses,\n    tags\n) VALUES (\n    ?,\n    ?,\n    ?,\n    NOW(),\n    ?,\n    ?,\n    ?,\n    ?\n) RETURNING id",
+		"SourceName": "venues.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "id",
+			"Struct": null,
+			"Typ": {
+				"Name": "Integer",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "serial",
+				"Engine": "postgresql"
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": true,
+			"Name": "params",
+			"Struct": {
+				"Table": null,
+				"Name": "CreateVenueParams",
+				"Fields": [
+					{
+						"ID": 1,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 2,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.varchar",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 3,
+						"Name": "city",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 4,
+						"Name": "spotifyPlaylist",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.varchar",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 5,
+						"Name": "status",
+						"Type": {
+							"Name": "Status",
+							"IsEnum": true,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "status",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 6,
+						"Name": "statuses",
+						"Type": {
+							"Name": "Status",
+							"IsEnum": true,
+							"IsArray": true,
+							"IsNull": true,
+							"DataType": "status",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 7,
+						"Name": "tags",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": true,
+							"IsNull": true,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		}
+	},
+	{
+		"ClassName": "DeleteVenue",
+		"Cmd": ":exec",
+		"Comments": null,
+		"MethodName": "deleteVenue",
+		"FieldName": "deleteVenueStmt",
+		"ConstantName": "DELETE_VENUE",
+		"SQL": "DELETE FROM venue\nWHERE slug = ? AND slug = ?",
+		"SourceName": "venues.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "",
+			"Struct": null,
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": false,
+			"Name": "slug",
+			"Struct": null,
+			"Typ": {
+				"Name": "String",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "text",
+				"Engine": "postgresql"
+			},
+			"Column": {
+				"name": "slug",
+				"not_null": true,
+				"length": -1,
+				"table": {
+					"name": "venue"
+				},
+				"type": {
+					"name": "text"
+				},
+				"original_name": "slug"
+			}
+		}
+	},
+	{
+		"ClassName": "GetCity",
+		"Cmd": ":one",
+		"Comments": null,
+		"MethodName": "getCity",
+		"FieldName": "getCityStmt",
+		"ConstantName": "GET_CITY",
+		"SQL": "SELECT slug, name\nFROM city\nWHERE slug = ?",
+		"SourceName": "cities.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "result",
+			"Struct": {
+				"Table": {
+					"schema": "public",
+					"name": "city"
+				},
+				"Name": "City",
+				"Fields": [
+					{
+						"ID": 0,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": false,
+			"Name": "slug",
+			"Struct": null,
+			"Typ": {
+				"Name": "String",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "text",
+				"Engine": "postgresql"
+			},
+			"Column": {
+				"name": "slug",
+				"not_null": true,
+				"length": -1,
+				"table": {
+					"name": "city"
+				},
+				"type": {
+					"name": "text"
+				},
+				"original_name": "slug"
+			}
+		}
+	},
+	{
+		"ClassName": "GetVenue",
+		"Cmd": ":one",
+		"Comments": null,
+		"MethodName": "getVenue",
+		"FieldName": "getVenueStmt",
+		"ConstantName": "GET_VENUE",
+		"SQL": "SELECT id, status, statuses, slug, name, city, spotify_playlist, songkick_id, tags, created_at\nFROM venue\nWHERE slug = ? AND city = ?",
+		"SourceName": "venues.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "result",
+			"Struct": {
+				"Table": {
+					"schema": "public",
+					"name": "venue"
+				},
+				"Name": "Venue",
+				"Fields": [
+					{
+						"ID": 0,
+						"Name": "id",
+						"Type": {
+							"Name": "Integer",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "serial",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "status",
+						"Type": {
+							"Name": "Status",
+							"IsEnum": true,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "status",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "statuses",
+						"Type": {
+							"Name": "Status",
+							"IsEnum": true,
+							"IsArray": true,
+							"IsNull": true,
+							"DataType": "status",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": "This value appears in public URLs"
+					},
+					{
+						"ID": 0,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.varchar",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "city",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "spotifyPlaylist",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.varchar",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "songkickId",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": true,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "tags",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": true,
+							"IsNull": true,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "createdAt",
+						"Type": {
+							"Name": "LocalDateTime",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.timestamp",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": "Venues are places where muisc happens"
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": true,
+			"Name": "params",
+			"Struct": {
+				"Table": null,
+				"Name": "GetVenueParams",
+				"Fields": [
+					{
+						"ID": 1,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 2,
+						"Name": "city",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		}
+	},
+	{
+		"ClassName": "ListCities",
+		"Cmd": ":many",
+		"Comments": null,
+		"MethodName": "listCities",
+		"FieldName": "listCitiesStmt",
+		"ConstantName": "LIST_CITIES",
+		"SQL": "SELECT slug, name\nFROM city\nORDER BY name",
+		"SourceName": "cities.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "result",
+			"Struct": {
+				"Table": {
+					"schema": "public",
+					"name": "city"
+				},
+				"Name": "City",
+				"Fields": [
+					{
+						"ID": 0,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": false,
+			"Name": "",
+			"Struct": null,
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		}
+	},
+	{
+		"ClassName": "ListVenues",
+		"Cmd": ":many",
+		"Comments": null,
+		"MethodName": "listVenues",
+		"FieldName": "listVenuesStmt",
+		"ConstantName": "LIST_VENUES",
+		"SQL": "SELECT id, status, statuses, slug, name, city, spotify_playlist, songkick_id, tags, created_at\nFROM venue\nWHERE city = ?\nORDER BY name",
+		"SourceName": "venues.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "result",
+			"Struct": {
+				"Table": {
+					"schema": "public",
+					"name": "venue"
+				},
+				"Name": "Venue",
+				"Fields": [
+					{
+						"ID": 0,
+						"Name": "id",
+						"Type": {
+							"Name": "Integer",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "serial",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "status",
+						"Type": {
+							"Name": "Status",
+							"IsEnum": true,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "status",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "statuses",
+						"Type": {
+							"Name": "Status",
+							"IsEnum": true,
+							"IsArray": true,
+							"IsNull": true,
+							"DataType": "status",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": "This value appears in public URLs"
+					},
+					{
+						"ID": 0,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.varchar",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "city",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "spotifyPlaylist",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.varchar",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "songkickId",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": true,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "tags",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": true,
+							"IsNull": true,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 0,
+						"Name": "createdAt",
+						"Type": {
+							"Name": "LocalDateTime",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.timestamp",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": "Venues are places where muisc happens"
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": false,
+			"Name": "city",
+			"Struct": null,
+			"Typ": {
+				"Name": "String",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "text",
+				"Engine": "postgresql"
+			},
+			"Column": {
+				"name": "city",
+				"not_null": true,
+				"length": -1,
+				"table": {
+					"name": "venue"
+				},
+				"type": {
+					"name": "text"
+				},
+				"original_name": "city"
+			}
+		}
+	},
+	{
+		"ClassName": "UpdateCityName",
+		"Cmd": ":exec",
+		"Comments": null,
+		"MethodName": "updateCityName",
+		"FieldName": "updateCityNameStmt",
+		"ConstantName": "UPDATE_CITY_NAME",
+		"SQL": "UPDATE city\nSET name = ?\nWHERE slug = ?",
+		"SourceName": "cities.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "",
+			"Struct": null,
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": true,
+			"Name": "params",
+			"Struct": {
+				"Table": null,
+				"Name": "UpdateCityNameParams",
+				"Fields": [
+					{
+						"ID": 1,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 2,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		}
+	},
+	{
+		"ClassName": "UpdateVenueName",
+		"Cmd": ":one",
+		"Comments": null,
+		"MethodName": "updateVenueName",
+		"FieldName": "updateVenueNameStmt",
+		"ConstantName": "UPDATE_VENUE_NAME",
+		"SQL": "UPDATE venue\nSET name = ?\nWHERE slug = ?\nRETURNING id",
+		"SourceName": "venues.sql",
+		"Ret": {
+			"Emit": false,
+			"Name": "id",
+			"Struct": null,
+			"Typ": {
+				"Name": "Integer",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "serial",
+				"Engine": "postgresql"
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": true,
+			"Name": "params",
+			"Struct": {
+				"Table": null,
+				"Name": "UpdateVenueNameParams",
+				"Fields": [
+					{
+						"ID": 1,
+						"Name": "slug",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 2,
+						"Name": "name",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "pg_catalog.varchar",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		}
+	},
+	{
+		"ClassName": "VenueCountByCity",
+		"Cmd": ":many",
+		"Comments": null,
+		"MethodName": "venueCountByCity",
+		"FieldName": "venueCountByCityStmt",
+		"ConstantName": "VENUE_COUNT_BY_CITY",
+		"SQL": "SELECT\n    city,\n    count(*)\nFROM venue\nGROUP BY 1\nORDER BY 1",
+		"SourceName": "venues.sql",
+		"Ret": {
+			"Emit": true,
+			"Name": "result",
+			"Struct": {
+				"Table": null,
+				"Name": "VenueCountByCityRow",
+				"Fields": [
+					{
+						"ID": 0,
+						"Name": "city",
+						"Type": {
+							"Name": "String",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "text",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					},
+					{
+						"ID": 1,
+						"Name": "count",
+						"Type": {
+							"Name": "Long",
+							"IsEnum": false,
+							"IsArray": false,
+							"IsNull": false,
+							"DataType": "bigint",
+							"Engine": "postgresql"
+						},
+						"Comment": ""
+					}
+				],
+				"Comment": ""
+			},
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		},
+		"Arg": {
+			"Emit": false,
+			"Name": "",
+			"Struct": null,
+			"Typ": {
+				"Name": "",
+				"IsEnum": false,
+				"IsArray": false,
+				"IsNull": false,
+				"DataType": "",
+				"Engine": ""
+			},
+			"Column": null
+		}
+	}
+]

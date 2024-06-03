@@ -1,0 +1,14 @@
+version: "2"
+plugins:
+  - name: "java"
+    process:
+      cmd: "../../bin/sqlc-gen-java"
+sql:
+  - engine: "postgresql"
+    schema: "src/main/resources/database/migrations"
+    queries: "src/main/resources/database/queries"
+    codegen:
+      - out: "src/main/java/com/example/database"
+        plugin: "java"
+        options:
+          package: "com.example.database"

@@ -1,0 +1,18 @@
+[
+	{
+		"Name": "Status",
+		"Comment": "Venues can be either open or closed",
+		"Constants": [
+			{
+				"Name": "OPEN",
+				"Type": "Status",
+				"Value": "op!en"
+			},
+			{
+				"Name": "CLOSED",
+				"Type": "Status",
+				"Value": "clo@sed"
+			}
+		]
+	}
+]
