@@ -5,6 +5,10 @@
 
 package {{.Package}};
 
+{{range imports .SourceName}}
+import {{.}};
+{{- end}}
+
 {{ if .Struct.Comment}}{{comment .Struct.Comment}}{{end}}
 public class {{.Name}} {
 

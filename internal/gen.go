@@ -69,11 +69,14 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 		})
 	}
 
+	importer := codegen.NewEnumImporter(options, enums, classes, queries)
+
 	customFuncMap := template.FuncMap{
 		"title":      sdk.Title,
 		"lowerTitle": sdk.LowerTitle,
 		"comment":    sdk.DoubleSlashComment,
 		"singular":   singular,
+		"imports":    importer.Imports,
 	}
 
 	funcMap := sprig.FuncMap()
@@ -103,11 +106,13 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 
 	for _, enum := range enums {
 		data := struct {
+			SourceName         string
 			Package            string
 			SqlcVersion        string
 			SqlcGenJavaVersion string
 			codegen.Enum
 		}{
+			SourceName:         enum.Name + ".java",
 			Package:            options.Package,
 			SqlcVersion:        req.SqlcVersion,
 			SqlcGenJavaVersion: version,
@@ -120,12 +125,14 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 
 	createStructTmplData := func(s codegen.Struct, emitBuilder bool) any {
 		return struct {
+			SourceName         string
 			Package            string
 			SqlcVersion        string
 			SqlcGenJavaVersion string
 			EmitBuilder        bool
 			codegen.Struct
 		}{
+			SourceName:         s.Name + ".java",
 			Package:            options.Package,
 			SqlcVersion:        req.SqlcVersion,
 			SqlcGenJavaVersion: version,
@@ -158,11 +165,13 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 
 	{
 		data := struct {
+			SourceName         string
 			Package            string
 			SqlcVersion        string
 			SqlcGenJavaVersion string
 			Queries            []codegen.Query
 		}{
+			SourceName:         "Queries.java",
 			Package:            options.Package,
 			SqlcVersion:        req.SqlcVersion,
 			SqlcGenJavaVersion: version,
@@ -175,12 +184,13 @@ func Generate(ctx context.Context, req *pb.GenerateRequest) (*pb.GenerateRespons
 
 	{
 		data := struct {
+			SourceName         string
 			Package            string
 			SqlcVersion        string
 			SqlcGenJavaVersion string
-			RowMappers         map[string]*codegen.Struct
 			Queries            []codegen.Query
 		}{
+			SourceName:         "QueriesImpl.java",
 			Package:            options.Package,
 			SqlcVersion:        req.SqlcVersion,
 			SqlcGenJavaVersion: version,

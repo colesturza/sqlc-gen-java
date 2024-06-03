@@ -5,6 +5,10 @@
 
 package {{.Package}};
 
+{{range imports .SourceName}}
+import {{.}};
+{{- end}}
+
 public interface Queries {
 {{- range .Queries}}
 {{- if eq .Cmd ":one"}}
@@ -17,7 +21,7 @@ public interface Queries {
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    java.util.List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}});
+    List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- if eq .Cmd ":exec"}}
 
@@ -41,7 +45,7 @@ public interface Queries {
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    java.util.Map.Entry<Long, Long> {{.MethodName}}({{.Arg.Pair}});
+    Map.Entry<Long, Long> {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- end}}
 }

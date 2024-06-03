@@ -5,8 +5,9 @@
 
 package {{.Package}};
 
-import java.util.Map;
-import java.util.HashMap;
+{{range imports .SourceName}}
+import {{.}};
+{{- end}}
 
 {{with .Enum}}
 {{if .Comment}}{{comment .Comment}}{{end}}

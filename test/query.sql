@@ -55,7 +55,7 @@ SET title = $1, tags = $2
 WHERE book_id = $3
 RETURNING *;
 
--- name: UpdateBookISBN :execrows
+-- name: UpdateBookISBN :execresult
 UPDATE books
 SET title = $1, tags = $2, isbn = $4
 WHERE book_id = $3;

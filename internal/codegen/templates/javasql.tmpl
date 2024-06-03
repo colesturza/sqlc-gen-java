@@ -5,6 +5,10 @@
 
 package {{.Package}};
 
+{{range imports .SourceName}}
+import {{.}};
+{{- end}}
+
 public class QueriesImpl implements Queries {
 {{range .Queries}}
     public static final String {{.ConstantName}} = """
@@ -12,9 +16,9 @@ public class QueriesImpl implements Queries {
             """;
 {{end}}
 
-    protected final javax.sql.DataSource ds;
+    protected final DataSource ds;
 
-    public QueriesImpl(final javax.sql.DataSource ds) {
+    public QueriesImpl(final DataSource ds) {
         this.ds = ds;
     }
 
@@ -26,14 +30,14 @@ public class QueriesImpl implements Queries {
     @Overrides
     public {{.Ret.Type}} {{.MethodName}}({{.Arg.Pair}}) {
         {{.Ret.Type}} {{.Ret.Name}} = null;
-        try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
+        try (final Connection conn = ds.getConnection(); 
+             final PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
+            try (final ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     {{.Ret.Name}} = {{.Ret.ResultSet}};
                 }
             }
-        } catch (java.sql.SQLException e) {
+        } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
         return {{.Ret.Name}};
@@ -44,16 +48,16 @@ public class QueriesImpl implements Queries {
     {{range .Comments}}{{comment .}}
     {{end -}}
     @Overrides
-    public java.util.List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}}) {
-        java.util.List<{{.Ret.Type}}> {{.Ret.Name}} = new java.util.ArrayList<>();
-        try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
+    public List<{{.Ret.Type}}> {{.MethodName}}({{.Arg.Pair}}) {
+        final List<{{.Ret.Type}}> {{.Ret.Name}} = new ArrayList<>();
+        try (final Connection conn = ds.getConnection(); 
+             final PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
+            try (final ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     {{.Ret.Name}}.add({{.Ret.ResultSet}});
                 }
             }
-        } catch (java.sql.SQLException e) {
+        } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
         return {{.Ret.Name}};
@@ -65,10 +69,10 @@ public class QueriesImpl implements Queries {
     {{end -}}
     @Overrides
     public void {{.MethodName}}({{.Arg.Pair}}) {
-        try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
+        try (final Connection conn = ds.getConnection(); 
+             final PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
             ps.execute();
-        } catch (java.sql.SQLException e) {
+        } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -79,10 +83,10 @@ public class QueriesImpl implements Queries {
     {{end -}}
     @Overrides
     public long {{.MethodName}}({{.Arg.Pair}}) {
-        try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
+        try (final Connection conn = ds.getConnection(); 
+             final PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
             return ps.executeLargeUpdate();
-        } catch (java.sql.SQLException e) {
+        } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -93,16 +97,17 @@ public class QueriesImpl implements Queries {
     {{end -}}
     @Overrides
     public long {{.MethodName}}({{.Arg.Pair}}) {
-        try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, java.sql.Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
-            long affectedRows = ps.executeLargeUpdate();
+        try (final Connection conn = ds.getConnection(); 
+             final PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
+            final long affectedRows = ps.executeLargeUpdate();
             if (affectedRows > 0) {
-                java.sql.ResultSet generatedKeys = ps.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    return generatedKeys.getLong(1);
+                try(final ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getLong(1);
+                    }
                 }
             }
-        } catch (java.sql.SQLException e) {
+        } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
         return -1;
@@ -113,20 +118,21 @@ public class QueriesImpl implements Queries {
     {{range .Comments}}{{comment .}}
     {{end -}}
     @Overrides
-    public java.util.Map.Entry<Long, Long> {{.MethodName}}({{.Arg.Pair}}) {
-        try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, java.sql.Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
-            long affectedRows = ps.executeLargeUpdate();
+    public Map.Entry<Long, Long> {{.MethodName}}({{.Arg.Pair}}) {
+        try (final Connection conn = ds.getConnection(); 
+             final PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
+            final long affectedRows = ps.executeLargeUpdate();
             if (affectedRows > 0) {
-                java.sql.ResultSet generatedKeys = ps.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    return java.util.Map.entry(affectedRows, generatedKeys.getLong(1));
+                try(final ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return Map.entry(affectedRows, generatedKeys.getLong(1));
+                    }
                 }
             }
-        } catch (java.sql.SQLException e) {
+        } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
-        return java.util.Map.entry(-1, -1);
+        return Map.entry(-1L, -1L);
     }
 {{- end}}
 {{- end}}
