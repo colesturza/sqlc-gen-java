@@ -33,14 +33,17 @@ func ConvertCamelToConstant(input string) string {
 
 	var words []string
 	var currentWord []rune
+	var lastWasUpper bool
 
-	for _, r := range input {
-		if unicode.IsUpper(r) && len(currentWord) > 0 {
+	for i, r := range input {
+		isUpper := unicode.IsUpper(r)
+		if i > 0 && isUpper && (!lastWasUpper || (lastWasUpper && !unicode.IsUpper(rune(input[i-1])))) {
 			words = append(words, string(currentWord))
 			currentWord = []rune{r}
 		} else {
 			currentWord = append(currentWord, r)
 		}
+		lastWasUpper = isUpper
 	}
 	words = append(words, string(currentWord))
 

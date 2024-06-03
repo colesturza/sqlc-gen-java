@@ -41,7 +41,7 @@ public interface Queries {
 
     {{range .Comments}}{{comment .}}
     {{end -}}
-    long {{.MethodName}}({{.Arg.Pair}});
+    java.util.Map.Entry<Long, Long> {{.MethodName}}({{.Arg.Pair}});
 {{- end}}
 {{- end}}
 }

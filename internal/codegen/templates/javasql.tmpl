@@ -81,8 +81,7 @@ public class QueriesImpl implements Queries {
     public long {{.MethodName}}({{.Arg.Pair}}) {
         try (final java.sql.Connection conn = ds.getConnection(); 
              final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}})) { {{.Arg.Bindings | nindent 12}}
-            ps.execute();
-            return ps.getLargeUpdateCount();
+            return ps.executeLargeUpdate();
         } catch (java.sql.SQLException e) {
             throw new RuntimeException(e);
         }
@@ -94,7 +93,19 @@ public class QueriesImpl implements Queries {
     {{end -}}
     @Overrides
     public long {{.MethodName}}({{.Arg.Pair}}) {
-        throw new UnsupportedOperationException();
+        try (final java.sql.Connection conn = ds.getConnection(); 
+             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
+            long affectedRows = ps.executeLargeUpdate();
+            if (affectedRows > 0) {
+                ResultSet generatedKeys = ps.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return generatedKeys.getLong(1);
+                }
+            }
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return -1;
     }
 {{- end}}
 {{- if eq .Cmd ":execresult"}}
@@ -102,8 +113,20 @@ public class QueriesImpl implements Queries {
     {{range .Comments}}{{comment .}}
     {{end -}}
     @Overrides
-    public long {{.MethodName}}({{.Arg.Pair}}) {
-        throw new UnsupportedOperationException();
+    public java.util.Map.Entry<Long, Long> {{.MethodName}}({{.Arg.Pair}}) {
+        try (final java.sql.Connection conn = ds.getConnection(); 
+             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
+            long affectedRows = ps.executeLargeUpdate();
+            if (affectedRows > 0) {
+                ResultSet generatedKeys = ps.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return java.util.Map.entry(affectedRows, generatedKeys.getLong(1));
+                }
+            }
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return java.util.Map.entry(-1, -1);
     }
 {{- end}}
 {{- end}}
