@@ -94,10 +94,10 @@ public class QueriesImpl implements Queries {
     @Overrides
     public long {{.MethodName}}({{.Arg.Pair}}) {
         try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
+             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, java.sql.Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
             long affectedRows = ps.executeLargeUpdate();
             if (affectedRows > 0) {
-                ResultSet generatedKeys = ps.getGeneratedKeys();
+                java.sql.ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     return generatedKeys.getLong(1);
                 }
@@ -115,10 +115,10 @@ public class QueriesImpl implements Queries {
     @Overrides
     public java.util.Map.Entry<Long, Long> {{.MethodName}}({{.Arg.Pair}}) {
         try (final java.sql.Connection conn = ds.getConnection(); 
-             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
+             final java.sql.PreparedStatement ps = conn.prepareStatement({{.ConstantName}}, java.sql.Statement.RETURN_GENERATED_KEYS)) { {{.Arg.Bindings | nindent 12}}
             long affectedRows = ps.executeLargeUpdate();
             if (affectedRows > 0) {
-                ResultSet generatedKeys = ps.getGeneratedKeys();
+                java.sql.ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     return java.util.Map.entry(affectedRows, generatedKeys.getLong(1));
                 }
